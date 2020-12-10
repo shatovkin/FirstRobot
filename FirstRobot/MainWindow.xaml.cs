@@ -1,9 +1,13 @@
-﻿using QuikSharp;
+﻿using FirstRobot.Model;
+using QuikSharp;
 using QuikSharp.DataStructures;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
+using System.Windows.Input;
 using Tulpep.NotificationWindow;
 
 namespace FirstRobot
@@ -17,14 +21,16 @@ namespace FirstRobot
         string classCode = "";
         string clientCode = "";
         List<string> toolList;
-       
-        private int emaPeriodSeven = 7;
+        List<string> blackList = new List<string>();
+
+        bool runThreads = true;
+
 
         public MainWindow()
         {
             InitializeComponent();
             toolList = new List<string>() {
-            "AFSK","CHMF","VTBR","SNGS","MOEX","PLZL","TATN","AFLT","ALRS","ROSN","NVTK","MGNT","LKOH","GAZP","SBER","IMOEX"
+             "AFSK","CHMF","VTBR","SNGS","MOEX","PLZL","TATN","AFLT","ALRS","ROSN","NVTK","MGNT","LKOH","GAZP","SBER","IMOEX"
             };
         }
 
@@ -59,10 +65,6 @@ namespace FirstRobot
                         //RunBtn.IsEnabled = false;
                         RunBtn.IsEnabled = false;
                     }
-                    // для отладки
-                    //Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
-                    //Trace.Listeners.Add(new TextWriterTraceListener("TraceLogging.log"));
-                    // для отладки
                 }
                 catch
                 {
@@ -74,6 +76,7 @@ namespace FirstRobot
         private void Log(string str)
         {
             textBoxLogsWindow.AppendText(str + Environment.NewLine);
+            textBoxLogsWindow.ScrollToEnd();
         }
 
         private void remoteConnection_Checked(object sender, RoutedEventArgs e)
@@ -83,17 +86,14 @@ namespace FirstRobot
 
         private void RunBtn_Click(object sender, RoutedEventArgs e)
         {
-            while (true)
-            {
-                foreach (var secCode in toolList)
-                {
-                    Run(secCode);
-                }
-               // Thread.Sleep(20000);
-            }
+            RunBtn.IsEnabled = false;
+            StopBtn.IsEnabled = true;
+            Log("Программа запущена...");
+
+            perRun();
         }
 
-        void Run(string secCode)
+        void Run(string secCode, QuikSharp.DataStructures.CandleInterval interval, string message, double percentDifference, int emaInterval)
         {
             try
             {
@@ -114,67 +114,105 @@ namespace FirstRobot
                     if (tool != null && tool.Name != null && tool.Name != "")
                     {
                         double previousEma = 0;
-                        List<Candle> cadles = _quik.Candles.GetLastCandles(classCode, secCode, QuikSharp.DataStructures.CandleInterval.H1, 14).Result;
+                        List<Candle> cadles = _quik.Candles.GetLastCandles(classCode, secCode, interval, emaInterval * 4).Result;
+                        double toolLastPrice = Convert.ToDouble(_quik.Trading.GetParamEx(classCode, secCode, "LAST").Result.ParamValue);
                         int counter = 0;
-                      //  int candleIndex = 0;
 
                         // Расчёт предыдущего ЕМА
                         foreach (var candle in cadles)
                         {
-                            if (counter < 7)
-                            { 
-                                previousEma += decimal.ToDouble(candle.Close);
+                            if (counter < emaInterval)
+                            {
+                                previousEma += toDouble(candle.Close);
 
-                                if (counter == 6 ) {
-                                    previousEma = previousEma / emaPeriodSeven;
+                                if (counter == emaInterval - 1)
+                                {
+                                    previousEma = previousEma / emaInterval;
                                 }
                             }
                             else
                             {
-                               previousEma = emaCalculation(decimal.ToDouble(candle.Close), previousEma, decimal.ToDouble(emaPeriodSeven));
-                               // candleIndex++;
+                                previousEma = emaCalculation(toDouble(candle.Close), previousEma, toDouble(emaInterval));
                             }
                             counter++;
                         }
-
-                        double s = previousEma/0.5; 
-                        //decimal pricePositive = tool.LastPrice - currentEma;
-                        //decimal priceNegative = currentEma - tool.LastPrice;
-                        //decimal percent = ((pricePositive - currentEma) / (pricePositive + currentEma) / 2) / 100;
+                        string messagtest = message;
+                        double pricePositive = toolLastPrice - previousEma;
 
                         ////Цена выше EMA
-                        //if (pricePositive > currentEma)
-                        //{
-                        //    if (decimal.ToDouble(percent) > 0.5)
-                        //    {
-                        //        MessageBox.Show("Подход к чЕМА:" + tool.Name);
-                        //        Thread.Sleep(2000);
-                        //    }
-                        //}
-                        //else
-                        //{
-                        //    //Цена ниже ЕМА
-                        //    if (decimal.ToDouble(percent) < 0.5)
-                        //    {
-                        //        MessageBox.Show("Подход к чЕМА:" + tool.Name);
-                        //        Thread.Sleep(2000);
-                        //    }
-                        //}
+                        if (pricePositive > 0)
+                        {
+                            double p1 = (toolLastPrice / previousEma - 1) * 100;
+
+                            if (p1 < percentDifference)
+                            {
+                                blackList.Add(tool.Name);
+                                Log(message + tool.Name);
+                                MessageBox.Show(message + tool.Name);
+                                Thread.Sleep(2000);
+                            }
+                        }
+                        else
+                        {
+                            double p2 = (previousEma / toolLastPrice - 1) * 100;
+                            //Цена ниже ЕМА
+                            if (p2 < percentDifference)
+                            {
+                                blackList.Add(tool.Name);
+                                Log(message + tool.Name);
+                                MessageBox.Show(message + tool.Name);
+                                Thread.Sleep(2000);
+                            }
+                        }
                     }
                 }
             }
             catch (Exception e)
             {
-                textBoxLogsWindow.AppendText("Ошибка получения данных по инструменту." +e.ToString()+ Environment.NewLine);
+                Log("Ошибка получения данных по инструменту." + e.ToString());
             }
         }
 
-        private static double emaCalculation(double closePreise, double previosEma, double emaPeriod)
+        private double toDouble(decimal value)
         {
-            double k = 2/(emaPeriod+1);
-            double ema = closePreise * k + previosEma * (1-k);
-            //double ema = (closePreise - previosEma) * k + previosEma;
+            return decimal.ToDouble(value);
+        }
+        private static double emaCalculation(double closePrice, double previosEma, double emaPeriod)
+        {
+            double k = 2 / (emaPeriod + 1);
+            double ema = closePrice * k + previosEma * (1 - k);
             return ema;
+        }
+
+        void perRun()
+        {
+            runThreads = true;
+
+            while (runThreads)
+            {
+                foreach (var secCode in toolList)
+                {
+                    Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH7, Convert.ToDouble(chemaPercentTxt.Text), 7);
+                    Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD7, Convert.ToDouble(chemaPercentTxt.Text), 7);
+                    Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH14, Convert.ToDouble(chemaPercentTxt.Text), 14);
+                    Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD14, Convert.ToDouble(chemaPercentTxt.Text), 14);
+                }
+                Thread.Sleep(5000);
+            }
+        }
+
+        private void StopBtn_Click(object sender, RoutedEventArgs e)
+        {
+            runThreads = false;
+            StopBtn.IsEnabled = false;
+            RunBtn.IsEnabled = true;
+            Log("Программа остановлена...");
+        }
+
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex("[^0-9.]+");
+            e.Handled = regex.IsMatch(e.Text);
         }
     }
 }
