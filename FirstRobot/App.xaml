@@ -4,6 +4,30 @@
              xmlns:local="clr-namespace:FirstRobot"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <local:BoolToVisibilityConverter x:Key="InputToVisibility"/>
+        <Style x:Key="WatermarkTextbox" TargetType="{x:Type TextBox}">
+            <Setter Property="BorderBrush" Value="Gray"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <Grid>
+                                <TextBlock Text ="Черный список инструментов" Foreground="Gray" HorizontalAlignment="Center">
+                                    <TextBlock.Visibility>
+                                        <MultiBinding Converter="{StaticResource InputToVisibility}">
+                                            <Binding ElementName="inputText" Path="Text.IsEmpty"/>
+                                        </MultiBinding>
+                                    </TextBlock.Visibility>
+                                </TextBlock>
+                                <TextBox x:Name="inputText" Background="Transparent"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

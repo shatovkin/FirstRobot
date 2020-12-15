@@ -3,10 +3,11 @@ using QuikSharp;
 using QuikSharp.DataStructures;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Tulpep.NotificationWindow;
 
@@ -14,24 +15,45 @@ namespace FirstRobot
 {
     public partial class MainWindow : Window
     {
+        public delegate void UpdatePopup(PopupNotifier notificationPopup);
+        //public delegate void DelUpdateUITextBox(string secCode, QuikSharp.DataStructures.CandleInterval interval, 
+        //    string message, double percentDifference, int emaInterval);
         public static Quik _quik;
         private Tool tool;
         bool isServerConnected = false;
-
-        string classCode = "";
+        bool checkBoxChema = false;
+        bool checkBoxDema = false;
+        string classCodes = "";
         string clientCode = "";
-        List<string> toolList;
+        List<string> toolList = new List<string>();
         List<string> blackList = new List<string>();
-
         bool runThreads = true;
-
+        string classes = "";
 
         public MainWindow()
         {
             InitializeComponent();
-            toolList = new List<string>() {
-             "AFSK","CHMF","VTBR","SNGS","MOEX","PLZL","TATN","AFLT","ALRS","ROSN","NVTK","MGNT","LKOH","GAZP","SBER","IMOEX"
-            };
+            this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
+
+            if (Properties.Settings.Default.LicenceExists == true)
+            {
+                this.ConnectBnt.IsEnabled = true;
+                this.OpenFilesBtn.IsEnabled = true;
+                createFile(ToolUtil.ToolsWhiteListPath,ToolUtil.ToolsString,false);
+                createFile(ToolUtil.ToolsBlackListPath,"",false);
+                createFile(ToolUtil.CodesListPath,ToolUtil.CodesString,false);
+
+                fillBlackListTxt();
+                string[] tools = System.IO.File.ReadAllText(ToolUtil.ToolsWhiteListPath).Replace('"', ' ').Replace(" ", "").Split(',');
+                classes = System.IO.File.ReadAllText(ToolUtil.CodesListPath);
+                toolList.AddRange(tools);
+            }
+            else
+            {
+                LicenceWindow lw = new LicenceWindow(this);
+                lw.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                lw.Show();
+            }
         }
 
         private void connectToQuik_Click(object sender, RoutedEventArgs e)
@@ -75,47 +97,76 @@ namespace FirstRobot
 
         private void Log(string str)
         {
-            textBoxLogsWindow.AppendText(str + Environment.NewLine);
-            textBoxLogsWindow.ScrollToEnd();
-        }
-
-        private void remoteConnection_Checked(object sender, RoutedEventArgs e)
-        {
-
+            this.Dispatcher.Invoke((Action)(() =>
+            {
+                textBoxLogsWindow.AppendText(str + Environment.NewLine);
+                textBoxLogsWindow.ScrollToEnd();
+            }));
         }
 
         private void RunBtn_Click(object sender, RoutedEventArgs e)
         {
+            runThreads = true;
+            checkBoxChema = chemaCheckbox.IsChecked.Value;
+            checkBoxDema = demaCheckbox.IsChecked.Value;
+
+            createFile(ToolUtil.ToolsBlackListPath, this.blackListTxt.Text.ToUpper(),true);
+
+            addToBlacklist(this.blackListTxt.Text);
+
             RunBtn.IsEnabled = false;
             StopBtn.IsEnabled = true;
             Log("Программа запущена...");
 
-            perRun();
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                perRun();
+            }).Start();
         }
 
-        void Run(string secCode, QuikSharp.DataStructures.CandleInterval interval, string message, double percentDifference, int emaInterval)
+        private void addToBlacklist(string toolsString)
+        {
+            string[] tools = toolsString.ToUpper().Split(',');
+
+            for (int i = 0; i < tools.Length; i++)
+            {
+                if (!blackList.Contains(tools[i]))
+                {
+                    blackList.Add(tools[i].Trim());
+                }
+            }
+        }
+
+        private void Run(string secCode, QuikSharp.DataStructures.CandleInterval interval, string message, double percentDifference, int emaInterval)
         {
             try
             {
                 try
                 {
-                    classCode = _quik.Class.GetSecurityClass("SPBFUT,TQBR,TQBS,TQNL,TQLV,TQNE,TQOB,QJSIM", secCode).Result;
+                    classCodes = _quik.Class.GetSecurityClass(classes, secCode).Result;
+
+                    if (classCodes == "")
+                    {
+                        showPopup("Ошибка получения данных по инструменту: " + secCode, "Неправильное имя инструмента");
+                        Log("Ошибка получения данных по инструменту: " + secCode);
+                    }
                 }
                 catch
                 {
-                    textBoxLogsWindow.AppendText("Ошибка определения класса инструмента. Убедитесь, что тикер указан правильно" + Environment.NewLine);
+                    Log("Ошибка определения класса инструмента. Убедитесь, что тикер указан правильно");
                 }
-                if (classCode != null && classCode != "")
+                if (classCodes != null && classCodes != "")
                 {
                     clientCode = _quik.Class.GetClientCode().Result;
 
-                    tool = new Tool(_quik, secCode, classCode);
+                    tool = new Tool(_quik, secCode, classCodes);
 
                     if (tool != null && tool.Name != null && tool.Name != "")
                     {
                         double previousEma = 0;
-                        List<Candle> cadles = _quik.Candles.GetLastCandles(classCode, secCode, interval, emaInterval * 4).Result;
-                        double toolLastPrice = Convert.ToDouble(_quik.Trading.GetParamEx(classCode, secCode, "LAST").Result.ParamValue);
+                        List<Candle> cadles = _quik.Candles.GetLastCandles(classCodes, secCode, interval, emaInterval * 4).Result;
+                        double toolLastPrice = Convert.ToDouble(_quik.Trading.GetParamEx(classCodes, secCode, "LAST").Result.ParamValue);
                         int counter = 0;
 
                         // Расчёт предыдущего ЕМА
@@ -146,10 +197,8 @@ namespace FirstRobot
 
                             if (p1 < percentDifference)
                             {
-                                blackList.Add(tool.Name);
-                                Log(message + tool.Name);
-                                MessageBox.Show(message + tool.Name);
-                                Thread.Sleep(2000);
+                                Log(message + tool.Name + " " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5) + " " + secCode);
+                                showPopup(message + tool.Name + " (" + secCode + ") " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5), tool.Name + " " + secCode);
                             }
                         }
                         else
@@ -158,18 +207,17 @@ namespace FirstRobot
                             //Цена ниже ЕМА
                             if (p2 < percentDifference)
                             {
-                                blackList.Add(tool.Name);
-                                Log(message + tool.Name);
-                                MessageBox.Show(message + tool.Name);
-                                Thread.Sleep(2000);
+
+                                Log(message + tool.Name + " " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5) + " " + secCode);
+                                showPopup(message + tool.Name + " (" + secCode + ") " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5), tool.Name + " " + secCode);
                             }
                         }
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                Log("Ошибка получения данных по инструменту." + e.ToString());
+                Log("Ошибка получения данных по инструменту: " + tool.Name);
             }
         }
 
@@ -177,6 +225,7 @@ namespace FirstRobot
         {
             return decimal.ToDouble(value);
         }
+
         private static double emaCalculation(double closePrice, double previosEma, double emaPeriod)
         {
             double k = 2 / (emaPeriod + 1);
@@ -184,18 +233,37 @@ namespace FirstRobot
             return ema;
         }
 
-        void perRun()
+        private void perRun()
         {
-            runThreads = true;
-
             while (runThreads)
             {
                 foreach (var secCode in toolList)
                 {
-                    Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH7, Convert.ToDouble(chemaPercentTxt.Text), 7);
-                    Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD7, Convert.ToDouble(chemaPercentTxt.Text), 7);
-                    Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH14, Convert.ToDouble(chemaPercentTxt.Text), 14);
-                    Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD14, Convert.ToDouble(chemaPercentTxt.Text), 14);
+                    if (runThreads)
+                    {
+                        //Blacklist
+                        if (!blackList.Contains(secCode.Trim()))
+                        {
+                            string val1 = null, val2 = null;
+                            this.Dispatcher.Invoke((Action)(() =>
+                            {//this refer to form in WPF application 
+                            val1 = chemaPercentTxt.Text;
+                                val2 = demaPercentTxt.Text;
+                            }));
+
+                            if (checkBoxChema == true)
+                            {
+                                Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH7, Convert.ToDouble(val1), 7);
+                                Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH14, Convert.ToDouble(val1), 14);
+                            }
+
+                            if (checkBoxDema == true)
+                            {
+                                Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD7, Convert.ToDouble(val2), 7);
+                                Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD14, Convert.ToDouble(val2), 14);
+                            }
+                        }
+                    }
                 }
                 Thread.Sleep(5000);
             }
@@ -213,6 +281,80 @@ namespace FirstRobot
         {
             Regex regex = new Regex("[^0-9.]+");
             e.Handled = regex.IsMatch(e.Text);
+        }
+
+        void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            myWindow.WindowStartupLocation = WindowStartupLocation.Manual;
+            myWindow.Left = System.Windows.SystemParameters.PrimaryScreenWidth - 290;
+            myWindow.Top = System.Windows.SystemParameters.PrimaryScreenHeight - 535;
+        }
+
+        public void showPopup(string message, string title)
+        {
+            this.Dispatcher.Invoke((Action)(() =>
+            {   //this refer to form in WPF application 
+                PopupNotifier popUp = new PopupNotifier();
+                popUp.TitleText = title;
+                popUp.ContentText = message;
+                popUp.ContentFont = new System.Drawing.Font("Arial", 14F);
+                popUp.Size = new System.Drawing.Size(600, 100);
+                popUp.Popup();
+            }));
+        }
+
+        private void createFile(string pathString,string toolsString,bool delete)
+        {
+
+            if (!Directory.Exists(ToolUtil.OrderPath))
+            {
+                Directory.CreateDirectory(ToolUtil.OrderPath);
+            }
+
+            if (delete == true)
+            {
+                System.IO.File.Delete(pathString);
+            }
+
+            if (!System.IO.File.Exists(pathString))
+            {
+               
+                using (System.IO.FileStream fs = System.IO.File.Create(pathString))
+                {
+                }
+
+                using (System.IO.StreamWriter file =
+                          new System.IO.StreamWriter(pathString, false))
+                {
+                    file.Write(toolsString);
+                }
+            }
+            else
+            {
+                Console.WriteLine("File \"{0}\" already exists.");
+                return;
+            }
+        }
+
+        private void OpenFiles_Click(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Process.Start("explorer", ToolUtil.OrderPath);
+        }
+
+        private void blackListTxt_TextChanged(object sender, TextChangedEventArgs e)
+        {
+        }
+
+        private void fillBlackListTxt()
+        {
+            var line = "";
+            var lines = File.ReadAllLines(ToolUtil.ToolsBlackListPath);
+            for (var i = 0; i < lines.Length; i += 1)
+            {
+                line = lines[i];
+            }
+
+            this.blackListTxt.Text = line.Trim().Replace(" ", "");
         }
     }
 }
