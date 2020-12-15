@@ -5,12 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FirstRobot"
         mc:Ignorable="d"
-        Title="MainWindow" Height="400" Width="310">
+        Name="myWindow"
+        Title="Калькулятор ЕМА" Height="500" Width="290">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="30*"/>
-            <ColumnDefinition Width="30"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="0*"/>
+            <ColumnDefinition Width="304"/>
+            <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="232*"/>
@@ -18,19 +19,48 @@
             <RowDefinition Height="0*"/>
             <RowDefinition Height="137*"/>
         </Grid.RowDefinitions>
-        <Button x:Name="ConnectBnt" Content="Подключиться к терминалу" HorizontalAlignment="Center" Margin="15,10,9,0" VerticalAlignment="Top" Width="240" Click="connectToQuik_Click" Height="27" RenderTransformOrigin="-0.335,0.582" Grid.ColumnSpan="2"/>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Height="25" Margin="20,60,8,84" VerticalAlignment="Top"  Grid.ColumnSpan="2">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Height="50" Margin="0,-6,10,6" Width="111">
-                <Label Content="Чema%" Height="23" VerticalAlignment="Top" Margin="0,-4,0,0" />
-                <TextBox x:Name="chemaPercentTxt" PreviewTextInput="NumberValidationTextBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="0.03" VerticalAlignment="Top" Width="50" Margin="10,0,10,0"/>
+        <Button x:Name="ConnectBnt" IsEnabled="false" Content="Подключиться к терминалу" HorizontalAlignment="Center" Margin="22,10,42,0" VerticalAlignment="Top" Width="240" Click="connectToQuik_Click" Height="27" RenderTransformOrigin="-0.335,0.582" Grid.Column="1"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Height="25" Margin="25,70,43,0" VerticalAlignment="Top" Grid.Column="1" Width="236">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Height="50" Margin="0,2,10,-27.2" Width="117">
+                <Label Content="Чema" Height="23" VerticalAlignment="Top" Margin="0,-4,0,0" />
+                <CheckBox x:Name="chemaCheckbox" IsChecked="true" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" VerticalAlignment="Top" Width="44" Margin="20,3,10,0"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Height="50" Margin="0,-6,10,6">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Height="50" Margin="0,2,10,-27.2" Width="106">
+                <Label Content="Дema" Height="50" Margin="0,-4,7,4" />
+                <CheckBox x:Name="demaCheckbox"  IsChecked="True" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" VerticalAlignment="Top" Width="50" Margin="0,3"/>
+            </StackPanel>
+        </StackPanel>
+
+
+        <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Height="25" Margin="25,100,43,0" VerticalAlignment="Top" Grid.Column="1" Width="236">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Height="50" Margin="0,2,10,-27.2" Width="117">
+                <Label Content="Период" Height="27" VerticalAlignment="Top" Margin="0,-4,0,0" />
+                <TextBox x:Name="chemaPeriodTxt" PreviewTextInput="NumberValidationPeriod" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="0.03" VerticalAlignment="Top" Width="44" Margin="10,0,10,0" TextChanged="chemaPeriodTxt_TextChanged"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Height="50" Margin="0,2,10,-27.2" Width="106">
+                <Label Content="Период" Height="50" Margin="0,-4,0,4" />
+                <TextBox x:Name="demaPeriodTxt" PreviewTextInput="NumberValidationPeriod" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="0.03" VerticalAlignment="Top" Width="50"/>
+            </StackPanel>
+        </StackPanel>-->
+
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Height="25" Margin="25,120,43,0" VerticalAlignment="Top" Grid.Column="1" Width="236">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Height="50" Margin="0,2,10,-27.2" Width="117">
+                <Label Content="Чema%" Height="23" VerticalAlignment="Top" Margin="0,-4,2,0" />
+                <TextBox x:Name="chemaPercentTxt" PreviewTextInput="NumberValidationTextBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="0.03" VerticalAlignment="Top" Width="44" Margin="10,0,10,0"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Height="50" Margin="0,2,10,-27.2" Width="106">
                 <Label Content="Дema%" Height="50" Margin="0,-4,0,4" />
                 <TextBox x:Name="demaPercentTxt" PreviewTextInput="NumberValidationTextBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="0.03" VerticalAlignment="Top" Width="50"/>
             </StackPanel>
         </StackPanel>
-        <TextBox  x:Name="textBoxLogsWindow" HorizontalAlignment="Center" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Height="125" Width="240" Grid.Row="3" Grid.ColumnSpan="2" Margin="14,0,10,0" ScrollViewer.CanContentScroll="True"/>
-        <Button x:Name="RunBtn" IsEnabled="False" Content="Старт" HorizontalAlignment="Center" Margin="23,0,21.8,47.8" VerticalAlignment="Bottom" Width="240" Click="RunBtn_Click" Height="27" RenderTransformOrigin="-0.335,0.582" Grid.ColumnSpan="2"/>
-        <Button x:Name="StopBtn" IsEnabled="False" Content="Стоп" HorizontalAlignment="Center" Margin="13,0,11,10" VerticalAlignment="Bottom" Width="240" Click="StopBtn_Click" Height="27" RenderTransformOrigin="-0.335,0.582" Grid.ColumnSpan="2"/>
+
+        <TextBox x:Name="blackListTxt" HorizontalAlignment="Center" VerticalAlignment="Top" Height="25" Width="240" Margin="19,186,45,0" Grid.Column="1" TextChanged="blackListTxt_TextChanged"/>
+        <!--Style="{StaticResource WatermarkTextbox}"-->
+        <TextBox x:Name="textBoxLogsWindow" HorizontalAlignment="Center" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Height="124" Width="240" Grid.Row="3" Margin="21,0,43,0" ScrollViewer.CanContentScroll="True" Grid.Column="1"/>
+        <Button x:Name="RunBtn" IsEnabled="False" Content="Старт" HorizontalAlignment="Center" Margin="20,0,44,46.8" VerticalAlignment="Bottom" Width="240" Click="RunBtn_Click" Height="27" RenderTransformOrigin="-0.335,0.582" Grid.Column="1"/>
+        <Button x:Name="StopBtn" IsEnabled="False" Content="Стоп" HorizontalAlignment="Center" Margin="20,0,44,9.8" VerticalAlignment="Bottom" Width="240" Click="StopBtn_Click" Height="27" RenderTransformOrigin="-0.335,0.582" Grid.Column="1"/>
+        <Button x:Name="OpenFilesBtn" IsEnabled="False" Content="Открыть файлы" HorizontalAlignment="Center" Margin="22,0,42,9.4" VerticalAlignment="Bottom" Width="240" Click="OpenFiles_Click" Height="27" RenderTransformOrigin="-0.335,0.582" Grid.Column="1" Grid.Row="3"/>
     </Grid>
 </Window>

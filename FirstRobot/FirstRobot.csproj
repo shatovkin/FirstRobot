@@ -29,6 +29,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -49,7 +50,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>imgonlineEma.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="LicenseServiceWebApp">
+      <HintPath>.\LicenseServiceWebApp.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -64,6 +71,9 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Management.Instrumentation" />
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.6.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.7.0\lib\netstandard1.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
       <Private>True</Private>
@@ -102,9 +112,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Model\SearchToolParameters.cs" />
+    <Compile Include="BoolToVisibilityConverter.cs" />
+    <Compile Include="LicenceWindow.xaml.cs">
+      <DependentUpon>LicenceWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LicenseServiceController.cs" />
     <Compile Include="Model\ToolUtil.cs" />
     <Compile Include="Tool.cs" />
+    <Page Include="LicenceWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -156,12 +174,15 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="imgonlineEma.ico" />
+    <Content Include="LicenseServiceWebApp.sln" />
     <Content Include="lua\clibs64\5.1_MD\socket\core.dll" />
     <Content Include="lua\clibs64\5.1_MT\socket\core.dll" />
     <Content Include="lua\clibs64\53_MD\socket\core.dll" />
     <Content Include="lua\clibs64\53_MT\socket\core.dll" />
     <Content Include="lua\clibs\5.1_MD\socket\core.dll" />
     <Content Include="lua\clibs\5.1_MT\socket\core.dll" />
+    <None Include="Resources\ema.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">

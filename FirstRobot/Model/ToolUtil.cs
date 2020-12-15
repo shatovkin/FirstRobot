@@ -8,9 +8,18 @@ namespace FirstRobot.Model
 {
     public class ToolUtil
     {
-        public static string messageD7 = "подход к 7 Дема: ";
-        public static string messageH7 = "подход к 7 Чема: ";
-        public static string messageD14 = "подход к 14 Дема: ";
-        public static string messageH14 = "подход к 14 Чема: ";
+        public static string messageD7 = "Подход к 7 Дема: ";
+        public static string messageH7 = "Подход к 7 Чема: ";
+        public static string messageD14 = "Подход к 14 Дема: ";
+        public static string messageH14 = "Подход к 14 Чема: ";
+
+        public static string OrderPath = "C:\\EmaCalculator";
+        public static string ToolsWhiteListPath = "C:\\EmaCalculator\\WhiteList.txt";
+        public static string CodesListPath = "C:\\EmaCalculator\\ClassCodesList.txt";
+        public static string ToolsBlackListPath = "C:\\EmaCalculator\\BlackList.txt";
+
+        public static string ToolsString = "RSTI,CHMF,VTBR,SNGS,MOEX,PLZL,TATN,AFLT,ALRS,ROSN,NVTK,MGNT,LKOH,GAZP,SBER,IMOEX";
+        public static string CodesString = "INDX,SPBFUT,TQBR,TQBS,TQNL,TQLV,TQNE,TQOB,QJSIM";
+
     }
 }
