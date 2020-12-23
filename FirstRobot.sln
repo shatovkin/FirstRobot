@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstRobot", "FirstRobot\FirstRobot.csproj", "{057123EF-1F51-47A5-A2EB-3457FD9F4A7D}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "EmaCalculator", "EmaCalculator\EmaCalculator.vdproj", "{904C50BD-A64F-47AA-9A93-E6BA7FF7834E}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Ema Flagman", "Ema Flagman\Ema Flagman.vdproj", "{98E77E1E-B041-4736-A5D3-1C07EDA1471F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,8 +17,8 @@ Global
 		{057123EF-1F51-47A5-A2EB-3457FD9F4A7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{057123EF-1F51-47A5-A2EB-3457FD9F4A7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{057123EF-1F51-47A5-A2EB-3457FD9F4A7D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{904C50BD-A64F-47AA-9A93-E6BA7FF7834E}.Debug|Any CPU.ActiveCfg = Debug
-		{904C50BD-A64F-47AA-9A93-E6BA7FF7834E}.Release|Any CPU.ActiveCfg = Release
+		{98E77E1E-B041-4736-A5D3-1C07EDA1471F}.Debug|Any CPU.ActiveCfg = Debug
+		{98E77E1E-B041-4736-A5D3-1C07EDA1471F}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
