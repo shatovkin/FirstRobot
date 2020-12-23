@@ -23,6 +23,7 @@ namespace FirstRobot
         bool isServerConnected = false;
         bool checkBoxChema = false;
         bool checkBoxDema = false;
+        bool checkBoxPopUp = false;
         string classCodes = "";
         string clientCode = "";
         List<string> toolList = new List<string>();
@@ -39,9 +40,9 @@ namespace FirstRobot
             {
                 this.ConnectBnt.IsEnabled = true;
                 this.OpenFilesBtn.IsEnabled = true;
-                createFile(ToolUtil.ToolsWhiteListPath,ToolUtil.ToolsString,false);
-                createFile(ToolUtil.ToolsBlackListPath,"",false);
-                createFile(ToolUtil.CodesListPath,ToolUtil.CodesString,false);
+                createFile(ToolUtil.ToolsWhiteListPath, ToolUtil.ToolsString, false);
+                createFile(ToolUtil.ToolsBlackListPath, "", false);
+                createFile(ToolUtil.CodesListPath, ToolUtil.CodesString, false);
 
                 fillBlackListTxt();
                 string[] tools = System.IO.File.ReadAllText(ToolUtil.ToolsWhiteListPath).Replace('"', ' ').Replace(" ", "").Split(',');
@@ -109,8 +110,9 @@ namespace FirstRobot
             runThreads = true;
             checkBoxChema = chemaCheckbox.IsChecked.Value;
             checkBoxDema = demaCheckbox.IsChecked.Value;
+            checkBoxPopUp = popUpCheckbox.IsChecked.Value;
 
-            createFile(ToolUtil.ToolsBlackListPath, this.blackListTxt.Text.ToUpper(),true);
+            createFile(ToolUtil.ToolsBlackListPath, this.blackListTxt.Text.ToUpper(), true);
 
             addToBlacklist(this.blackListTxt.Text);
 
@@ -138,7 +140,7 @@ namespace FirstRobot
             }
         }
 
-        private void Run(string secCode, QuikSharp.DataStructures.CandleInterval interval, string message, double percentDifference, int emaInterval)
+        private void Run(string secCode, QuikSharp.DataStructures.CandleInterval interval, string message, double percentDifference, int emaInterval, string emaName)
         {
             try
             {
@@ -148,7 +150,7 @@ namespace FirstRobot
 
                     if (classCodes == "")
                     {
-                        showPopup("Ошибка получения данных по инструменту: " + secCode, "Неправильное имя инструмента");
+                        showPopup("Ошибка получения данных по инструменту: " + secCode, "Неправильное имя инструмента", checkBoxPopUp);
                         Log("Ошибка получения данных по инструменту: " + secCode);
                     }
                 }
@@ -165,12 +167,12 @@ namespace FirstRobot
                     if (tool != null && tool.Name != null && tool.Name != "")
                     {
                         double previousEma = 0;
-                        List<Candle> cadles = _quik.Candles.GetLastCandles(classCodes, secCode, interval, emaInterval * 4).Result;
+                        List<Candle> candleList = _quik.Candles.GetLastCandles(classCodes, secCode, interval, emaInterval * 4).Result;
                         double toolLastPrice = Convert.ToDouble(_quik.Trading.GetParamEx(classCodes, secCode, "LAST").Result.ParamValue);
                         int counter = 0;
 
                         // Расчёт предыдущего ЕМА
-                        foreach (var candle in cadles)
+                        foreach (var candle in candleList)
                         {
                             if (counter < emaInterval)
                             {
@@ -187,29 +189,44 @@ namespace FirstRobot
                             }
                             counter++;
                         }
-                        string messagtest = message;
+
+                        bool chemaReady = false;
+                        bool demaReady = false; 
+
+                        if (emaName == "4ema")
+                        {
+                            chemaReady = analyzeChemaCandles(candleList, previousEma);
+                        }
+                        else if (emaName == "Dema")
+                        {
+                            demaReady = analyzeDemaCandle(candleList[candleList.Count - 1], previousEma);
+                        }
+
                         double pricePositive = toolLastPrice - previousEma;
 
-                        ////Цена выше EMA
-                        if (pricePositive > 0)
+                        if (chemaReady || demaReady)
                         {
-                            double p1 = (toolLastPrice / previousEma - 1) * 100;
-
-                            if (p1 < percentDifference)
+                            ////Цена выше EMA
+                            if (pricePositive > 0)
                             {
-                                Log(message + tool.Name + " " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5) + " " + secCode);
-                                showPopup(message + tool.Name + " (" + secCode + ") " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5), tool.Name + " " + secCode);
+                                double p1 = ((toolLastPrice - previousEma) / toolLastPrice) * 100;
+
+                                if (p1 < percentDifference)
+                                {
+                                    Log(message + tool.Name + " " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5) + " " + secCode);
+                                    showPopup(message + tool.Name + " (" + secCode + ") " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5), tool.Name + " " + secCode, checkBoxPopUp);
+                                }
                             }
-                        }
-                        else
-                        {
-                            double p2 = (previousEma / toolLastPrice - 1) * 100;
-                            //Цена ниже ЕМА
-                            if (p2 < percentDifference)
+                            else
                             {
+                                double p2 = ((previousEma - toolLastPrice) / previousEma) * 100;
+                                //Цена ниже ЕМА
+                                if (p2 < percentDifference)
+                                {
 
-                                Log(message + tool.Name + " " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5) + " " + secCode);
-                                showPopup(message + tool.Name + " (" + secCode + ") " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5), tool.Name + " " + secCode);
+                                    Log(message + tool.Name + " " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5) + " " + secCode);
+                                    showPopup(message + tool.Name + " (" + secCode + ") " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5), tool.Name + " " + secCode, checkBoxPopUp);
+                                }
                             }
                         }
                     }
@@ -247,25 +264,25 @@ namespace FirstRobot
                             string val1 = null, val2 = null;
                             this.Dispatcher.Invoke((Action)(() =>
                             {//this refer to form in WPF application 
-                            val1 = chemaPercentTxt.Text;
+                                val1 = chemaPercentTxt.Text;
                                 val2 = demaPercentTxt.Text;
                             }));
 
                             if (checkBoxChema == true)
                             {
-                                Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH7, Convert.ToDouble(val1), 7);
-                                Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH14, Convert.ToDouble(val1), 14);
+                                Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH7, Convert.ToDouble(val1), 7, "4ema");
+                                Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH14, Convert.ToDouble(val1), 14, "4ema");
                             }
 
                             if (checkBoxDema == true)
                             {
-                                Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD7, Convert.ToDouble(val2), 7);
-                                Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD14, Convert.ToDouble(val2), 14);
+                                Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD7, Convert.ToDouble(val2), 7, "Dema");
+                                Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD14, Convert.ToDouble(val2), 14, "Dema");
                             }
                         }
                     }
                 }
-                Thread.Sleep(5000);
+                Thread.Sleep(60000);
             }
         }
 
@@ -290,20 +307,23 @@ namespace FirstRobot
             myWindow.Top = System.Windows.SystemParameters.PrimaryScreenHeight - 535;
         }
 
-        public void showPopup(string message, string title)
+        public void showPopup(string message, string title, bool checkBoxPopUp)
         {
-            this.Dispatcher.Invoke((Action)(() =>
-            {   //this refer to form in WPF application 
-                PopupNotifier popUp = new PopupNotifier();
-                popUp.TitleText = title;
-                popUp.ContentText = message;
-                popUp.ContentFont = new System.Drawing.Font("Arial", 14F);
-                popUp.Size = new System.Drawing.Size(600, 100);
-                popUp.Popup();
-            }));
+            if (checkBoxPopUp == true)
+            {
+                this.Dispatcher.Invoke((Action)(() =>
+                {   //this refer to form in WPF application 
+                    PopupNotifier popUp = new PopupNotifier();
+                    popUp.TitleText = title;
+                    popUp.ContentText = message;
+                    popUp.ContentFont = new System.Drawing.Font("Arial", 14F);
+                    popUp.Size = new System.Drawing.Size(600, 100);
+                    popUp.Popup();
+                }));
+            }
         }
 
-        private void createFile(string pathString,string toolsString,bool delete)
+        private void createFile(string pathString, string toolsString, bool delete)
         {
 
             if (!Directory.Exists(ToolUtil.OrderPath))
@@ -318,7 +338,7 @@ namespace FirstRobot
 
             if (!System.IO.File.Exists(pathString))
             {
-               
+
                 using (System.IO.FileStream fs = System.IO.File.Create(pathString))
                 {
                 }
@@ -355,6 +375,62 @@ namespace FirstRobot
             }
 
             this.blackListTxt.Text = line.Trim().Replace(" ", "");
+        }
+
+        private bool analyzeDemaCandle(Candle demaCadle, double currentEma)
+        {
+
+            double max = decimal.ToDouble(demaCadle.High);
+            double min = decimal.ToDouble(demaCadle.Low);
+
+            if (min > currentEma && max > currentEma)
+            {
+                return true;
+            }
+            else if (max < currentEma && min < currentEma)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        private bool analyzeChemaCandles(List<Candle> chemaCadles, double currentEma)
+        {
+            List<Candle> lastCundles = new List<Candle>();
+            lastCundles.Add(chemaCadles[chemaCadles.Count - 1]);
+            lastCundles.Add(chemaCadles[chemaCadles.Count - 2]);
+            lastCundles.Add(chemaCadles[chemaCadles.Count - 3]);
+            lastCundles.Add(chemaCadles[chemaCadles.Count - 4]);
+            lastCundles.Add(chemaCadles[chemaCadles.Count - 5]);
+
+            decimal max = 0;
+            decimal min = 0;
+
+            foreach (var candle in lastCundles)
+            {
+                if (max < candle.High)
+                {
+                    max = candle.High;
+                }
+
+                if (min > candle.Low || min == 0)
+                {
+                    min = candle.Low;
+                }
+            }
+
+            double maximum = decimal.ToDouble(max);
+            double minimum = decimal.ToDouble(min);
+
+            if (minimum > currentEma && maximum > currentEma)
+            {
+                return true;
+            }
+            else if (maximum < currentEma && minimum < currentEma)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }
