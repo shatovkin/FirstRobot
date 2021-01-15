@@ -5,5 +5,38 @@
     <Setting Name="LicenceExists" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="Chema" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="Dema" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ChemaPeriod" Type="System.String" Scope="User">
+      <Value Profile="(Default)">7</Value>
+    </Setting>
+    <Setting Name="DemaPeriod" Type="System.String" Scope="User">
+      <Value Profile="(Default)">7</Value>
+    </Setting>
+    <Setting Name="Chema7" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.20</Value>
+    </Setting>
+    <Setting Name="Dema7" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.20</Value>
+    </Setting>
+    <Setting Name="Chema14" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.20</Value>
+    </Setting>
+    <Setting Name="Dema14" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.20</Value>
+    </Setting>
+    <Setting Name="Chema20" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.20</Value>
+    </Setting>
+    <Setting Name="Dema20" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.20</Value>
+    </Setting>
+    <Setting Name="popUpWindow" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

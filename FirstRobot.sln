@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstRobot", "FirstRobot\FirstRobot.csproj", "{057123EF-1F51-47A5-A2EB-3457FD9F4A7D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmaFlagman", "FirstRobot\EmaFlagman.csproj", "{057123EF-1F51-47A5-A2EB-3457FD9F4A7D}"
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Ema Flagman", "Ema Flagman\Ema Flagman.vdproj", "{98E77E1E-B041-4736-A5D3-1C07EDA1471F}"
 EndProject

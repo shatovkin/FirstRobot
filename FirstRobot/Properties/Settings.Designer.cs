@@ -34,5 +34,137 @@ namespace FirstRobot.Properties {
                 this["LicenceExists"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool Chema {
+            get {
+                return ((bool)(this["Chema"]));
+            }
+            set {
+                this["Chema"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool Dema {
+            get {
+                return ((bool)(this["Dema"]));
+            }
+            set {
+                this["Dema"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("7")]
+        public string ChemaPeriod {
+            get {
+                return ((string)(this["ChemaPeriod"]));
+            }
+            set {
+                this["ChemaPeriod"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("7")]
+        public string DemaPeriod {
+            get {
+                return ((string)(this["DemaPeriod"]));
+            }
+            set {
+                this["DemaPeriod"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.20")]
+        public string Chema7 {
+            get {
+                return ((string)(this["Chema7"]));
+            }
+            set {
+                this["Chema7"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.20")]
+        public string Dema7 {
+            get {
+                return ((string)(this["Dema7"]));
+            }
+            set {
+                this["Dema7"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.20")]
+        public string Chema14 {
+            get {
+                return ((string)(this["Chema14"]));
+            }
+            set {
+                this["Chema14"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.20")]
+        public string Dema14 {
+            get {
+                return ((string)(this["Dema14"]));
+            }
+            set {
+                this["Dema14"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.20")]
+        public string Chema20 {
+            get {
+                return ((string)(this["Chema20"]));
+            }
+            set {
+                this["Chema20"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.20")]
+        public string Dema20 {
+            get {
+                return ((string)(this["Dema20"]));
+            }
+            set {
+                this["Dema20"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool popUpWindow {
+            get {
+                return ((bool)(this["popUpWindow"]));
+            }
+            set {
+                this["popUpWindow"] = value;
+            }
+        }
     }
 }

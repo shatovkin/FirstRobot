@@ -24,6 +24,8 @@ namespace FirstRobot
         bool checkBoxChema = false;
         bool checkBoxDema = false;
         bool checkBoxPopUp = false;
+        string chemaPeriod = "";
+        string demaPeriod = "";
         string classCodes = "";
         string clientCode = "";
         List<string> toolList = new List<string>();
@@ -35,6 +37,7 @@ namespace FirstRobot
         {
             InitializeComponent();
             this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
+            loadParameters();
 
             if (Properties.Settings.Default.LicenceExists == true)
             {
@@ -111,7 +114,10 @@ namespace FirstRobot
             checkBoxChema = chemaCheckbox.IsChecked.Value;
             checkBoxDema = demaCheckbox.IsChecked.Value;
             checkBoxPopUp = popUpCheckbox.IsChecked.Value;
-
+            chemaPeriod = chemaPeriodTxt.Text;
+            demaPeriod = demaPeriodTxt.Text;
+            
+            saveParameters();
             createFile(ToolUtil.ToolsBlackListPath, this.blackListTxt.Text.ToUpper(), true);
 
             addToBlacklist(this.blackListTxt.Text);
@@ -122,7 +128,7 @@ namespace FirstRobot
 
             new Thread(() =>
             {
-                Thread.CurrentThread.IsBackground = true;
+                 Thread.CurrentThread.IsBackground = true;
                 perRun();
             }).Start();
         }
@@ -158,6 +164,7 @@ namespace FirstRobot
                 {
                     Log("Ошибка определения класса инструмента. Убедитесь, что тикер указан правильно");
                 }
+
                 if (classCodes != null && classCodes != "")
                 {
                     clientCode = _quik.Class.GetClientCode().Result;
@@ -191,7 +198,7 @@ namespace FirstRobot
                         }
 
                         bool chemaReady = false;
-                        bool demaReady = false; 
+                        bool demaReady = false;
 
                         if (emaName == "4ema")
                         {
@@ -199,7 +206,7 @@ namespace FirstRobot
                         }
                         else if (emaName == "Dema")
                         {
-                            demaReady = analyzeDemaCandle(candleList[candleList.Count - 1], previousEma);
+                            demaReady = analyzeDemaCandle(candleList, previousEma);
                         }
 
                         double pricePositive = toolLastPrice - previousEma;
@@ -213,7 +220,7 @@ namespace FirstRobot
 
                                 if (p1 < percentDifference)
                                 {
-                                    Log(message + tool.Name + " " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5) + " " + secCode);
+                                    Log(message + tool.Name + " " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5) + " " + secCode+" ema:"+previousEma);
                                     showPopup(message + tool.Name + " (" + secCode + ") " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5), tool.Name + " " + secCode, checkBoxPopUp);
                                 }
                             }
@@ -223,7 +230,6 @@ namespace FirstRobot
                                 //Цена ниже ЕМА
                                 if (p2 < percentDifference)
                                 {
-
                                     Log(message + tool.Name + " " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5) + " " + secCode);
                                     showPopup(message + tool.Name + " (" + secCode + ") " + DateTime.Now.TimeOfDay.ToString().Substring(0, 5), tool.Name + " " + secCode, checkBoxPopUp);
                                 }
@@ -234,7 +240,7 @@ namespace FirstRobot
             }
             catch (Exception exception)
             {
-                Log("Ошибка получения данных по инструменту: " + tool.Name);
+                Log("Ошибка получения данных по инструменту: " + tool.Name + " Exception:" + exception);
             }
         }
 
@@ -261,23 +267,32 @@ namespace FirstRobot
                         //Blacklist
                         if (!blackList.Contains(secCode.Trim()))
                         {
-                            string val1 = null, val2 = null;
+                            string dema7 = null, dema14 = null, dema20 = null, chema7 = null, chema14 = null, chema20 = null;
                             this.Dispatcher.Invoke((Action)(() =>
-                            {//this refer to form in WPF application 
-                                val1 = chemaPercentTxt.Text;
-                                val2 = demaPercentTxt.Text;
+                            {   //this refer to form in WPF application 
+                                chema7 = chemaPercentTxt7.Text;
+                                dema7 = demaPercentTxt7.Text;
+
+                                chema14 = chemaPercentTxt14.Text;
+                                dema14 = demaPercentTxt14.Text;
+
+                                chema20 = chemaPercentTxt20.Text;
+                                dema20 = demaPercentTxt20.Text;
+
                             }));
 
                             if (checkBoxChema == true)
                             {
-                                Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH7, Convert.ToDouble(val1), 7, "4ema");
-                                Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH14, Convert.ToDouble(val1), 14, "4ema");
+                               Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH7, Convert.ToDouble(chema7), 7, "4ema");
+                               Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH14, Convert.ToDouble(chema14), 14, "4ema");
+                               Run(secCode, QuikSharp.DataStructures.CandleInterval.H1, ToolUtil.messageH20, Convert.ToDouble(chema20), 20, "4ema");
                             }
 
                             if (checkBoxDema == true)
                             {
-                                Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD7, Convert.ToDouble(val2), 7, "Dema");
-                                Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD14, Convert.ToDouble(val2), 14, "Dema");
+                               Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD7, Convert.ToDouble(dema7), 7, "Dema");
+                               Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD14, Convert.ToDouble(dema14), 14, "Dema");
+                               Run(secCode, QuikSharp.DataStructures.CandleInterval.D1, ToolUtil.messageD20, Convert.ToDouble(dema20), 20, "Dema");
                             }
                         }
                     }
@@ -377,36 +392,37 @@ namespace FirstRobot
             this.blackListTxt.Text = line.Trim().Replace(" ", "");
         }
 
-        private bool analyzeDemaCandle(Candle demaCadle, double currentEma)
+        private bool analyzeDemaCandle(List<Candle> demaCadles, double currentEma)
         {
-
-            double max = decimal.ToDouble(demaCadle.High);
-            double min = decimal.ToDouble(demaCadle.Low);
-
-            if (min > currentEma && max > currentEma)
-            {
-                return true;
-            }
-            else if (max < currentEma && min < currentEma)
-            {
-                return true;
-            }
-            return false;
+            return checkDemaAndChemaEma(demaCadles, currentEma);
         }
 
-        private bool analyzeChemaCandles(List<Candle> chemaCadles, double currentEma)
+        private bool analyzeChemaCandles(List<Candle> chemaCandles, double currentEma)
         {
-            List<Candle> lastCundles = new List<Candle>();
-            lastCundles.Add(chemaCadles[chemaCadles.Count - 1]);
-            lastCundles.Add(chemaCadles[chemaCadles.Count - 2]);
-            lastCundles.Add(chemaCadles[chemaCadles.Count - 3]);
-            lastCundles.Add(chemaCadles[chemaCadles.Count - 4]);
-            lastCundles.Add(chemaCadles[chemaCadles.Count - 5]);
+            return checkDemaAndChemaEma(chemaCandles, currentEma);
+        }
+
+        private bool checkDemaAndChemaEma(List<Candle> candles, double currentEma)
+        {
+
+            List<Candle> lastCandles = new List<Candle>();
+
+            int dema = int.Parse(chemaPeriod) + 1;
+
+            if (dema == 0)
+            {
+                dema = 1;
+            }
+
+            for (int i = 1; i < dema; i++)
+            {
+                lastCandles.Add(candles[candles.Count - i]);
+            }
 
             decimal max = 0;
             decimal min = 0;
 
-            foreach (var candle in lastCundles)
+            foreach (var candle in lastCandles)
             {
                 if (max < candle.High)
                 {
@@ -431,6 +447,45 @@ namespace FirstRobot
                 return true;
             }
             return false;
+        }
+
+        private void loadParameters()
+        {
+            chemaCheckbox.IsChecked = Properties.Settings.Default.Chema;
+            demaCheckbox.IsChecked = Properties.Settings.Default.Dema;
+            popUpCheckbox.IsChecked = Properties.Settings.Default.popUpWindow;
+
+            chemaPeriodTxt.Text = Properties.Settings.Default.ChemaPeriod;
+            demaPeriodTxt.Text = Properties.Settings.Default.DemaPeriod;
+
+            chemaPercentTxt7.Text  = Properties.Settings.Default.Chema7;
+            chemaPercentTxt14.Text = Properties.Settings.Default.Chema14;
+            chemaPercentTxt20.Text = Properties.Settings.Default.Chema20;
+
+            demaPercentTxt7.Text  = Properties.Settings.Default.Chema7;
+            demaPercentTxt14.Text = Properties.Settings.Default.Chema14;
+            demaPercentTxt20.Text = Properties.Settings.Default.Chema20;
+        }
+
+        private void saveParameters()
+        {
+
+            Properties.Settings.Default.Chema = (bool)chemaCheckbox.IsChecked;
+            Properties.Settings.Default.Dema = (bool)demaCheckbox.IsChecked;
+            Properties.Settings.Default.popUpWindow = (bool)popUpCheckbox.IsChecked;
+
+            Properties.Settings.Default.ChemaPeriod = chemaPeriodTxt.Text;
+            Properties.Settings.Default.DemaPeriod = demaPeriodTxt.Text;
+
+            Properties.Settings.Default.Chema7 = chemaPercentTxt7.Text;
+            Properties.Settings.Default.Chema14 = chemaPercentTxt14.Text;
+            Properties.Settings.Default.Chema20 = chemaPercentTxt20.Text;
+
+            Properties.Settings.Default.Chema7 = demaPercentTxt7.Text;
+            Properties.Settings.Default.Chema14 = demaPercentTxt14.Text;
+            Properties.Settings.Default.Chema20 = demaPercentTxt20.Text;
+
+            Properties.Settings.Default.Save();
         }
     }
 }
